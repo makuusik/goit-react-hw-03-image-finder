@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
 import Button from './Button';
 import Modal from './Modal';
 import Loader from './Loader';
+import axios from 'axios';
 
 class App extends Component {
   state = {
@@ -66,7 +66,7 @@ class App extends Component {
     return (
       <div className="App">
         <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery images={images} onClick={this.handleImageClick} />
+        <ImageGallery images={images} onImageClick={this.handleImageClick} />
         {isLoading && <Loader />}
         {images.length > 0 && (
           <Button onClick={this.fetchImages} isVisible={!isLoading} />
