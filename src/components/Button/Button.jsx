@@ -1,10 +1,17 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import { ButtonWrapper } from './ButtonStyled';
 
 const Button = ({ onClick, isVisible }) =>
   isVisible && (
-    <button type="button" className="button-load-more" onClick={onClick}>
+    <ButtonWrapper type="button" onClick={onClick}>
       Load more
-    </button>
+    </ButtonWrapper>
   );
+
+Button.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  isVisible: PropTypes.bool.isRequired,
+};
 
 export default Button;

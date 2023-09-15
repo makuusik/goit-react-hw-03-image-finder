@@ -1,10 +1,12 @@
+// App.js
 import React, { Component } from 'react';
+import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Modal from './Modal/Modal';
 import Loader from './Loader/Loader';
-import axios from 'axios';
+import './styles.css';
 
 class App extends Component {
   state = {
@@ -14,16 +16,32 @@ class App extends Component {
     largeImageURL: '',
     showModal: false,
     isLoading: false,
+    noMoreImages: false,
   };
 
+  componentDidMount() {
+    window.addEventListener('keydown', this.handleKeyDown);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.handleKeyDown);
+  }
+
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.query !== this.state.query) {
+    const { query, page } = this.state;
+
+    if (prevState.query !== query || prevState.page !== page) {
       this.fetchImages();
     }
   }
 
   fetchImages = () => {
-    const { query, page } = this.state;
+    const { query, page, isLoading } = this.state;
+
+    if (isLoading) {
+      return;
+    }
+
     const API_KEY = '38394863-d0bf61be8343901c1ba6a4493';
 
     this.setState({ isLoading: true });
@@ -33,10 +51,14 @@ class App extends Component {
         `https://pixabay.com/api/?key=${API_KEY}&q=${query}&page=${page}&per_page=12`
       )
       .then(response => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...response.data.hits],
-          page: prevState.page + 1,
-        }));
+        if (response.data.hits.length === 0) {
+          this.setState({ noMoreImages: true });
+        } else {
+          this.setState(prevState => ({
+            images: [...prevState.images, ...response.data.hits],
+            page: prevState.page + 1,
+          }));
+        }
       })
       .catch(error => console.error(error))
       .finally(() => {
@@ -49,7 +71,7 @@ class App extends Component {
   };
 
   handleFormSubmit = query => {
-    this.setState({ query, images: [], page: 1 });
+    this.setState({ query, images: [], page: 1, noMoreImages: false });
   };
 
   handleImageClick = largeImageURL => {
@@ -60,16 +82,29 @@ class App extends Component {
     this.setState({ largeImageURL: '', showModal: false });
   };
 
+  handleLoadMore = () => {
+    this.setState(prevState => ({ page: prevState.page + 1 }));
+  };
+
+  handleKeyDown = e => {
+    if (e.code === 'Escape') {
+      this.handleCloseModal();
+    }
+  };
+
   render() {
-    const { images, isLoading, showModal, largeImageURL } = this.state;
+    const { images, isLoading, showModal, largeImageURL, noMoreImages } =
+      this.state;
 
     return (
       <div className="App">
         <Searchbar onSubmit={this.handleFormSubmit} />
-        <ImageGallery images={images} onImageClick={this.handleImageClick} />
-        {isLoading && <Loader />}
         {images.length > 0 && (
-          <Button onClick={this.fetchImages} isVisible={!isLoading} />
+          <ImageGallery images={images} onClick={this.handleImageClick} />
+        )}
+        {isLoading && <Loader />}
+        {images.length > 0 && !noMoreImages && (
+          <Button onClick={this.handleLoadMore} isVisible={!isLoading} />
         )}
         {showModal && (
           <Modal
@@ -77,6 +112,7 @@ class App extends Component {
             onClose={this.handleCloseModal}
           />
         )}
+        {noMoreImages && <p>No more images found.</p>}
       </div>
     );
   }
