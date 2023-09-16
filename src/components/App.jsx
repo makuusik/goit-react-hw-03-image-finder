@@ -1,4 +1,3 @@
-// App.js
 import React, { Component } from 'react';
 import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
@@ -36,9 +35,9 @@ class App extends Component {
   }
 
   fetchImages = () => {
-    const { query, page, isLoading } = this.state;
+    const { query, page, isLoading, noMoreImages } = this.state;
 
-    if (isLoading) {
+    if (isLoading || noMoreImages) {
       return;
     }
 
@@ -83,7 +82,7 @@ class App extends Component {
   };
 
   handleLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+    this.fetchImages();
   };
 
   handleKeyDown = e => {
